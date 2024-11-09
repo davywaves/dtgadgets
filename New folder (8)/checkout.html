@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="checkout-container">
+        <h1>Checkout</h1>
+        
+        <!-- Display the selected product's details -->
+        <div id="product-info">
+            <h2>Product ID: <span id="product-id"></span></h2>
+            <p>Price: $<span id="product-price"></span></p>
+        </div>
+
+        <h3>Select Payment Method:</h3>
+
+        <!-- PayPal Button will be inserted here -->
+        <div id="paypal-button-container"></div>
+
+        <h3>Other Payment Options:</h3>
+        <button onclick="payWithBank()">Pay with Bank Transfer</button>
+        <button onclick="payWithUSSD()">Pay with USSD</button>
+    </div>
+
+    <!-- PayPal SDK (this script should go in the checkout page) -->
+    <script src="https://www.paypal.com/sdk/js?client-id=YOUR_PAYPAL_CLIENT_ID"></script>
+
+    <script>
+        // Get the product details from the URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const productId = urlParams.get('productId');
+        const price = parseFloat(urlParams.get('price'));
+
+        // Display product information
+        document.getElementById('product-id').textContent = productId;
+        document.getElementById('product-price').textContent = price.toFixed(2);
+
+        // Initialize PayPal button when the page is loaded
+        paypal.Buttons({
+            createOrder: function(data, actions) {
+                return actions.order.create({
+                    purchase_units: [{
+                        amount: {
+                            value: price.toFixed(2) // Use the product price here
+                        }
+                    }]
+                });
+            },
+            onApprove: function(data, actions) {
+                return actions.order.capture().then(function(details) {
+                    alert('Transaction completed by ' + details.payer.name.given_name);
+                    // Redirect to a success page or update the UI accordingly
+                    window.location.href = 'success.html'; // Replace with your success page URL
+                });
+            },
+            onError: function(err) {
+                console.error(err);
+                alert("An error occurred while processing your payment.");
+            }
+        }).render('#paypal-button-container'); // Renders the PayPal button inside the specified container
+
+        // Functions for other payment options
+        function payWithBank() {
+            alert("Please follow the bank transfer instructions.");
+        }
+
+        function payWithUSSD() {
+            alert("Please follow the USSD payment instructions.");
+        }
+    </script>
+</body>
+</html>
